@@ -1,0 +1,116 @@
+Step 1 — Create VPC
+    Name: Project-VPC
+    IPv4 CIDR: 10.0.0.0/16
+
+Step 2: Create 4 Subnets
+    Public-Subnet-1	10.0.1.0/24	ap-south-1a
+    Public-Subnet-2	10.0.2.0/24	ap-south-1b
+
+    Private-Subnet-1	10.0.3.0/24	ap-south-1a
+    Private-Subnet-2	10.0.4.0/24	ap-south-1b
+
+Step 3: Create Internet Gateway: Name: Project-IGW
+Atach to: Project-VPC
+
+Step 4: Configure Route Table (Public)
+    Create Public Route Table
+    Destination: 0.0.0.0/0
+    Target: Internet Gateway
+
+Associate with
+    Public Subnet 1
+    Public Subnet 2
+
+Step 5: Create NAT Gateway: Project-NAT
+    Subnet: Public Subnet 1
+    Elastic IP: Allocate new
+
+Step 6: Create Private Route Table: Private-Route-Table
+    Destination: 0.0.0.0/0
+    Target: NAT Gateway
+    Associate with:Private Subnet 1 & Private Subnet 2
+
+
+Step 7: Create Security Groups
+
+Load Balancer Security Group: Load Balancer Security Group
+    Inbound rules
+    HTTP 80 → 0.0.0.0
+EC2 Security Group: 
+    HTTP 80 from Load Balancer SG
+    SSH 22 from your IP
+
+Create new security group bastion-sg
+    Inbound rules:
+    Type	Port	Source
+    SSH	22	Your IP
+    Example:  22 → My IP
+
+Step 8 — Create Bastion Host
+    Name: Bastion-Host
+    AMI: Amazon Linux 2
+    Instance type: t2.micro
+    Subnet: Public-Subnet-1
+    Auto assign public IP: Enable
+
+    Security Group: SSH
+    Port: 22
+    Source: My IP
+
+Step 9 — Edit Security Group for Web Servers: Ec2-SG
+
+    Inbound rules
+    HTTP 80 → ALB Security Group
+    SSH 22 → Bastion Host Security Group
+
+Step 10: Create Launch Template
+User Data Script
+
+#!/bin/bash
+yum update -y
+yum install httpd -y
+systemctl start httpd
+systemctl enable httpd
+echo "Hello from Auto Scaling Instance" > /var/www/html/index.html
+
+Step 11: Create Target Group
+Step 12: Create Application Load Balancer
+    Scheme: Internet Facing
+    Subnets: Public Subnet 1, Public Subnet 2
+    Security Group: ALB-SG
+    Listener: HTTP 80
+    Target Group: previously created
+
+Step 13: Create Auto Scaling Group
+    Configuration
+    Launch Template: previously created
+    Network
+
+    VPC: Project-VPC
+    Subnets:
+    Private-Subnet-1
+    Private-Subnet-2
+
+    Capacity
+    Minimum: 2
+    Desired: 2
+    Maximum: 4
+
+    Attach
+    Target Group (Load Balancer)
+
+Step 14: Configure CloudWatch Metrics: EC2 CPU Utilization
+Step 15: Create CloudWatch Alarm
+    Create Alarm
+    Metric
+    EC2 CPUUtilization
+    Condition: If CPU > 70% for 5 minutes
+    Action
+    Trigger Auto Scaling
+    Example: Scale Out → Add 1 instance
+
+Step 16: Testing
+    Load Balancer DNS
+
+    4. Monitoring
+    Using CloudWatch Dashboard

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+yum update -y
+yum install python3 -y
+
+mkdir /var/app
+touch /var/app/orders.log
+
+cat <<EOF > /home/ec2-user/app.py
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import json
+
+orders=[]
+
+class Handler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        if self.path=="/health":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ok")
+
+        elif self.path=="/orders":
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(json.dumps(orders).encode())
+
+    def do_POST(self):
+        if self.path=="/orders":
+            length=int(self.headers['Content-Length'])
+            body=self.rfile.read(length)
+
+            order=json.loads(body)
+
+            orders.append(order)
+
+            with open("/var/app/orders.log","a") as f:
+                f.write("order_created "+json.dumps(order)+"\n")
+
+            self.send_response(201)
+            self.end_headers()
+
+server=HTTPServer(("0.0.0.0",80),Handler)
+server.serve_forever()
+EOF
+
+python3 /home/ec2-user/app.py &

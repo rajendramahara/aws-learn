@@ -1,0 +1,18 @@
+User Uploads Image
+        ↓
+Input S3 Bucket
+        ↓
+Lambda Trigger
+        ↓
+Amazon Rekognition
+        ↓
+Category Decision Logic
+        ↓
+ ┌──────────────┬───────────────┐
+ │              │               │
+DynamoDB     Output S3 Bucket
+(metadata)   (Dog/, Cat/, etc.)
+        ↓
+API Gateway
+        ↓
+Web Interface

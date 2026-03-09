@@ -1,0 +1,57 @@
+STEP 1 — Create DynamoDB Table
+Table name: CSVRecords
+Partition key: id
+
+🟩 STEP 2 — Create S3 Bucket for CSV uploads
+------------------------------------------------------------
+1. Go to S3 Console
+
+https://s3.console.aws.amazon.com/s3/home
+Create bucket
+🔵 Add CORS (required only if you upload from Postman or browser)
+1. Open your bucket
+
+csv-upload-practice-123
+
+2. Go to Permissions
+3. Scroll to CORS
+4. Paste:
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "PUT", "POST"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": []
+  }
+]
+
+
+Click Save
+
+------------------------------------------------------------
+🟨 STEP 3 — Create IAM Role for Lambda
+
+4. Attach policies:
+✔ AmazonS3ReadOnlyAccess
+✔ AmazonDynamoDBFullAccess
+✔ AWSLambdaBasicExecutionRole
+
+------------------------------------------------------------
+🟥 STEP 4 — Create Lambda Function
+
+------------------------------------------------------------
+🟪 STEP 5 — Add S3 Trigger to Lambda
+------------------------------------------------------------
+1. Open your Lambda: CSVtoDynamoDB
+2. Click Add Trigger
+3. Select:
+Source: S3
+Bucket: csv-upload-practice-123
+Event type: PUT
+Prefix: (empty)
+Suffix: .csv
+Enable the trigger.
+Click Add
+
+
+🟫 STEP 6 — Add Lambda Code (Full Working Code)

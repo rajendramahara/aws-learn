@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>AI News → Audio (AWS Polly)</title>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 40px;
+      background: #f4f6f8;
+    }
+
+h2 {
+  color: #333;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+button {
+  padding: 12px 20px;
+  background: #0073e6;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005bb5;
+}
+
+.news-card {
+  background: white;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+
+  </style>
+</head>
+
+<body>
+
+<h2>Generate Audio</h2>
+
+<label>Title</label> <input type="text" id="title">
+
+<label>Content</label>
+
+<textarea id="content"></textarea>
+
+<label>Language</label> <select id="language">
+
+  <option value="en-IN">English (India)</option>
+  <option value="hi-IN">Hindi</option>
+</select>
+
+<button onclick="generateAudio()">Generate Audio</button>
+
+<hr>
+
+<h2>Upload Text File To Convert</h2>
+
+<input type="file" id="fileInput">
+<button onclick="uploadFile()">Upload & Convert</button>
+
+<hr>
+
+<h2>Generated News Audio</h2>
+<div id="newsList"></div>
+
+<script>
+
+const API_URL = "https://dehwsuzbef.execute-api.us-east-1.amazonaws.com/prod";
+
+
+// Generate from text
+async function generateAudio() {
+
+  const title = document.getElementById("title").value;
+  const content = document.getElementById("content").value;
+  const language = document.getElementById("language").value;
+
+  console.log("Sending request:", { title, content, language });
+
+  const res = await fetch(`${API_URL}/generate-audio`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content, language })
+  });
+  console.log("Response received:", res);
+  const data = await res.json();
+  alert("Audio Generated");
+
+  loadNews();
+}
+
+
+// Upload file → Lambda → Polly
+async function uploadFile() {
+
+  const file = document.getElementById("fileInput").files[0];
+
+  if (!file) {
+    alert("Select file first");
+    return;
+  }
+
+  const text = await file.text();
+
+  const res = await fetch(`${API_URL}/generate-audio`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      title: file.name,
+      content: text,
+      language: "en-IN"
+    })
+  });
+
+  alert("File Converted");
+  loadNews();
+}
+
+
+// Load all audio files
+async function loadNews() {
+
+  const res = await fetch(`${API_URL}/news`);
+
+  console.log("Raw response:", res);
+
+  const news = await res.json();
+
+  console.log("Parsed news:", news);
+
+  if (!Array.isArray(news)) {
+    console.error("News is not array:", news);
+    return;
+  }
+
+  const div = document.getElementById("newsList");
+  div.innerHTML = "";
+
+  news.forEach(n => {
+    div.innerHTML += `
+      <div class="news-card">
+        <h3>${n.title}</h3>
+        <audio controls>
+          <source src="${n.audio_url}" type="audio/mpeg">
+        </audio>
+      </div>
+    `;
+  });
+}
+
+loadNews();
+
+</script>
+
+</body>
+</html>

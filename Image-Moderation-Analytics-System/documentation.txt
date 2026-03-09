@@ -1,0 +1,50 @@
+✅ Cloud Computing – Practice Project (Full Documentation)
+Project Name: Real-Time Image Moderation & Analytics System (Serverless)
+Difficulty: Same as IndiaSkills Day-2
+Time Expected: 6–7 Hours
+
+AWS Services Used:
+Amazon S3
+Amazon Rekognition
+Amazon DynamoDB
+AWS Lambda
+Amazon SNS
+Amazon SQS (FIFO)
+Amazon API Gateway
+AWS IAM
+
+📘 Background
+A media company wants to automate moderation of images uploaded by customers. The previous on-premises system failed due to heavy load and poor moderation accuracy. You have been assigned to rebuild the system using a fully serverless microservices architecture on AWS.
+
+Your system must:
+
+Accept user image uploads
+Run automated moderation using Amazon Rekognition
+Store moderation results in DynamoDB
+Send notifications for images containing restricted content
+Maintain audit logs for all processed images
+Use event-driven, decoupled architecture similar to the Day-2 challenge
+
+📌 Challenges
+
+Process 1000+ images uploaded by users at peak hours
+Lambda concurrency is limited to 25 (cannot be changed)
+Rekognition API has request-per-second limits
+Notifications must be sent only for images with sensitive content
+The system must be fully serverless — EC2 is not allowed
+Output must be recorded in three DynamoDB tables
+A queue must be used to handle burst traffic
+
+⚠️ Limitations
+Cannot store moderation rules in Lambda code
+Must store all rules in DynamoDB
+Cannot directly trigger SQS from S3 (same limitation as your previous task)
+Use SNS → SQS fanout
+No caching or hard-coded rule lists allowed
+
+📦 Modules Overview
+1. Module 1 — Uploading & Event Pipeline Setup
+2. Module 2 — DynamoDB Tables
+3. Module 3 — Image Moderation Logic
+4. Module 4 — Real-time Notification System
+5. Module 5 — API for Retrieving Moderation History

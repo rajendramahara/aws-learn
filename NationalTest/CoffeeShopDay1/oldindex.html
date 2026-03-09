@@ -1,0 +1,142 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+  <title>Coffee Shop</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+
+<h3>Order Beverage</h3>
+
+<select id="orderType" class="form-control mb-3">
+  <option value="">Select</option>
+  <option value="Espresso">Espresso</option>
+  <option value="Americano">Americano</option>
+  <option value="Flat White">Flat White</option>
+  <option value="Doppio">Doppio</option>
+  <option value="Macchiato">Macchiato</option>
+  <option value="Cappuccino">Cappuccino</option>
+  <option value="Mocha">Mocha</option>
+  <option value="Affogato">Affogato</option>
+  <option value="Irish Coffee">Irish Coffee</option>
+  <option value="Iced Coffee">Iced Coffee</option>
+  <option value="Custom">Custom</option>
+</select>
+
+<div id="customSection" style="display:none">
+  <h5>Custom Ingredients (Max 4)</h5>
+
+  <div class="row mb-2">
+    <div class="col">
+      <input class="form-control" placeholder="Item Code (ES, SR, MK...)">
+    </div>
+    <div class="col">
+      <input type="number" class="form-control" placeholder="Qty">
+    </div>
+  </div>
+</div>
+
+<button onclick="placeOrder()" class="btn btn-primary">Place Order</button>
+
+<pre id="result" class="mt-3"></pre>
+
+<script>
+document.getElementById("orderType").onchange = function () {
+  document.getElementById("customSection").style.display =
+    this.value === "Custom" ? "block" : "none";
+};
+
+function placeOrder() {
+  let order = document.getElementById("orderType").value;
+  let payload = { order: order };
+
+  if (order === "Custom") {
+    payload.ingredients = [
+      { itemcode: "ES", quantity: 2 },
+      { itemcode: "SR", quantity: 2 }
+    ];
+  }
+
+  fetch("https://q7szffesdk.execute-api.us-east-1.amazonaws.com/prod/order", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => document.getElementById("result").innerText =
+    JSON.stringify(data, null, 2));
+}
+</script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Coffee Shop</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container mt-4">
+
+<h3>Order Beverage</h3>
+
+<select id="orderType" class="form-control mb-3">
+  <option value="">Select</option>
+  <option value="Espresso">Espresso</option>
+  <option value="Americano">Americano</option>
+  <option value="Flat White">Flat White</option>
+  <option value="Doppio">Doppio</option>
+  <option value="Macchiato">Macchiato</option>
+  <option value="Cappuccino">Cappuccino</option>
+  <option value="Mocha">Mocha</option>
+  <option value="Affogato">Affogato</option>
+  <option value="Irish Coffee">Irish Coffee</option>
+  <option value="Iced Coffee">Iced Coffee</option>
+  <option value="Custom">Custom</option>
+</select>
+
+<div id="customSection" style="display:none">
+  <h5>Custom Ingredients (Max 4)</h5>
+
+  <div class="row mb-2">
+    <div class="col">
+      <input class="form-control" placeholder="Item Code (ES, SR, MK...)">
+    </div>
+    <div class="col">
+      <input type="number" class="form-control" placeholder="Qty">
+    </div>
+  </div>
+</div>
+
+<button onclick="placeOrder()" class="btn btn-primary">Place Order</button>
+
+<pre id="result" class="mt-3"></pre>
+
+<script>
+document.getElementById("orderType").onchange = function () {
+  document.getElementById("customSection").style.display =
+    this.value === "Custom" ? "block" : "none";
+};
+
+function placeOrder() {
+  let order = document.getElementById("orderType").value;
+  let payload = { order: order };
+
+  if (order === "Custom") {
+    payload.ingredients = [
+      { itemcode: "ES", quantity: 2 },
+      { itemcode: "SR", quantity: 2 }
+    ];
+  }
+
+  fetch("https://q7szffesdk.execute-api.us-east-1.amazonaws.com/prod/order", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => document.getElementById("result").innerText =
+    JSON.stringify(data, null, 2));
+}
+</script>
+</body>
+</html>

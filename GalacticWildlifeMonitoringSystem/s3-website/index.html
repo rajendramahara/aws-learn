@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Galactic Wildlife - Submit Sighting</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      /* background: url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e") no-repeat center center fixed; */
+      background: url("https://images.unsplash.com/photo-1462331940025-496dfbfc7564") no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #fff;
+      padding-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px 0;
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 90%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    fieldset {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
+
+    legend {
+      padding: 0 10px;
+      font-weight: bold;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      margin-top: 20px;
+      background: #00bfff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background: #0099cc;
+    }
+
+    .link-btn {
+      background: #ffcc00;
+      margin-left: 10px;
+    }
+
+    #msg, #error {
+      margin-top: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    #msg { color: #00ff99; }
+    #error { color: #ff4444; }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Galactic Wildlife - Submit Sighting</h1>
+    <!-- NEW BUTTON -->
+    <button type="button" class="btn link-btn" onclick="window.location.href='analytics.html'">
+      View Analytics
+    </button>
+
+  <form id="sightingForm">
+
+    <label>Ranger Name:</label>
+    <input type="text" name="ranger" required placeholder="Enter ranger name" />
+
+    <label>Planet Name:</label>
+    <input type="text" name="planet" required placeholder="Enter planet name" />
+
+    <fieldset>
+      <legend>Species Counts</legend>
+      <div id="speciesFields"></div>
+    </fieldset>
+
+    <button type="submit" class="btn">Submit Sighting</button>
+  </form>
+
+  <div id="msg"></div>
+  <div id="error"></div>
+</div>
+
+<!-- <script>
+// Species List
+const SPECIES = [
+  "Stellar Lynx", "Nebula Eagle", "Crimson Hornbeast", "Void Panther",
+  "Aqua Serpent", "Moonlight Wolf", "Quasar Turtle", "Luminous Beetle",
+  "Stormback Ape", "Crystal Mantis"
+];
+
+// API Gateway Base URL (CHANGE THIS)
+const API_BASE = "https://0qi7pimu0l.execute-api.us-east-1.amazonaws.com/prod";
+const SUBMIT_URL = API_BASE + "/submit";
+
+// Auto-generate species inputs
+const container = document.getElementById("speciesFields");
+SPECIES.forEach(spec => {
+  const div = document.createElement("div");
+  div.innerHTML = `
+    <label>${spec}:</label>
+    <input type="number" min="0" value="0" name="${spec}" />
+  `;
+  container.appendChild(div);
+});
+
+// Form submit handler
+document.getElementById("sightingForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  document.getElementById("msg").textContent = "";
+  document.getElementById("error").textContent = "";
+
+  const form = event.target;
+
+  const ranger = form.ranger.value.trim();
+  const planet = form.planet.value.trim();
+
+  const sightings = {};
+  SPECIES.forEach(spec => sightings[spec] = parseInt(form[spec].value || 0));
+
+  const payload = { ranger, planet, sightings };
+
+  try {
+    const response = await fetch(SUBMIT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.result === "valid") {
+      document.getElementById("msg").textContent =
+        "Success! Tracking Token: " + data.tracking_token;
+    } else {
+      document.getElementById("error").textContent =
+        "Error: " + (data.error || JSON.stringify(data));
+    }
+
+  } catch (err) {
+    document.getElementById("error").textContent = "Network Error: " + err;
+  }
+});
+</script> -->
+
+<script>
+const SPECIES = [
+  "Stellar Lynx","Nebula Eagle","Crimson Hornbeast","Void Panther",
+  "Aqua Serpent","Moonlight Wolf","Quasar Turtle","Luminous Beetle",
+  "Stormback Ape","Crystal Mantis"
+];
+
+const API = "https://0qi7pimu0l.execute-api.us-east-1.amazonaws.com/prod/submit";
+
+// Add species inputs
+const box = document.getElementById("speciesFields");
+SPECIES.forEach(s => {
+  box.innerHTML += `<label>${s}:</label>
+    <input type="number" name="${s}" min="0" value="0"><br>`;
+});
+
+// Form submit
+document.getElementById("sightingForm").onsubmit = async (e) => {
+  e.preventDefault();
+
+  const f = e.target;
+  const payload = {
+    ranger: f.ranger.value.trim(),
+    planet: f.planet.value.trim(),
+    sightings: Object.fromEntries(
+      SPECIES.map(s => [s, Number(f[s].value || 0)])
+    )
+  };
+
+  try {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    document.getElementById("msg").textContent =
+      res.ok && data.result === "valid"
+        ? "Success! Token: " + data.tracking_token
+        : "Error: " + (data.error || JSON.stringify(data));
+  } catch (err) {
+    document.getElementById("error").textContent = "Network Error: " + err;
+  }
+};
+</script>
+
+
+</body>
+</html>

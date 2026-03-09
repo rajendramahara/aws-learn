@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Inventory Consumption</title>
+  <style>
+    table {
+      width: 60%;
+      margin: auto;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #6f4e37;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<h2 style="text-align:center;">Inventory Consumption</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Item Code</th>
+      <th>Consumed Quantity</th>
+    </tr>
+  </thead>
+  <tbody id="stockBody"></tbody>
+</table>
+
+<script>
+const API_URL = "https://xgyua7xzqk.execute-api.us-east-1.amazonaws.com/dev/stocks";
+
+fetch(API_URL)
+  .then(res => res.json())
+  .then(data => {
+    const rows = data.stock;
+    const tbody = document.getElementById("stockBody");
+
+    rows.forEach(row => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${row.item}</td>
+          <td>${row.consumedqty}</td>
+        </tr>`;
+    });
+  });
+</script>
+
+</body>
+</html>

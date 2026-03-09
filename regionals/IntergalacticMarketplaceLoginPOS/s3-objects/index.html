@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Intergalactic POS</title>
+  <link rel="stylesheet" href="css/pos.css">
+</head>
+<body>
+  <div class="main">
+    <p class="sign" align="center">Intergalactic Marketplace</p>
+
+    Agent Name:
+    <input type="text" id="agent" value="STAR-AGENT-07" readonly>
+
+    <form id="orderForm">
+      <table>
+        <tr><td>
+          <label for="q1">Orriz Nectar</label>
+          <input type="number" id="q1" name="q1" min="0" value="0">
+        </td><td>
+          <label for="q2">Randolite Bark</label>
+          <input type="number" id="q2" name="q2" min="0" value="0">
+        </td></tr>
+
+        <tr><td>
+          <label for="q3">Jenkomeryon Leaf</label>
+          <input type="number" id="q3" name="q3" min="0" value="0">
+        </td><td>
+          <label for="q4">Afistase Fruit</label>
+          <input type="number" id="q4" name="q4" min="0" value="0">
+        </td></tr>
+
+        <tr><td>
+          <label for="q5">Cabardson Seed</label>
+          <input type="number" id="q5" name="q5" min="0" value="0">
+        </td><td>
+          <label for="q6">Hickmonium Berry</label>
+          <input type="number" id="q6" name="q6" min="0" value="0">
+        </td></tr>
+
+        <tr><td>
+          <label for="q7">Soipruolite Pollen</label>
+          <input type="number" id="q7" name="q7" min="0" value="0">
+        </td><td>
+          <label for="q8">Wheeleaon Root</label>
+          <input type="number" id="q8" name="q8" min="0" value="0">
+        </td></tr>
+
+        <tr><td>
+          <label for="q9">Friotaug Stem</label>
+          <input type="number" id="q9" name="q9" min="0" value="0">
+        </td><td>
+          <label for="q10">Poif Flower</label>
+          <input type="number" id="q10" name="q10" min="0" value="0">
+        </td></tr>
+
+        <tr><td>
+          <input type="submit" class="submit" value="Place Order">
+        </td></tr>
+      </table>
+    </form>
+
+    <pre id="result"></pre>
+
+  </div>
+
+<script>
+document.querySelector("#orderForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+
+    const agent = document.getElementById("agent").value;
+
+    const items = {
+        "Orriz Nectar": parseInt(document.getElementById("q1").value),
+        "Randolite Bark": parseInt(document.getElementById("q2").value),
+        "Jenkomeryon Leaf": parseInt(document.getElementById("q3").value),
+        "Afistase Fruit": parseInt(document.getElementById("q4").value),
+        "Cabardson Seed": parseInt(document.getElementById("q5").value),
+        "Hickmonium Berry": parseInt(document.getElementById("q6").value),
+        "Soipruolite Pollen": parseInt(document.getElementById("q7").value),
+        "Wheeleaon Root": parseInt(document.getElementById("q8").value),
+        "Friotaug Stem": parseInt(document.getElementById("q9").value),
+        "Poif Flower": parseInt(document.getElementById("q10").value)
+    };
+
+    const filtered = {};
+    Object.keys(items).forEach(key => {
+        if (items[key] > 0) filtered[key] = items[key];
+    });
+
+    const payload = {
+        agent: agent,
+        items: filtered
+    };
+
+    try {
+        const res = await fetch(
+            "https://j2v45exrmd.execute-api.us-east-1.amazonaws.com/prod/order",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const output = await res.json();
+        document.getElementById("result").innerText = JSON.stringify(output, null, 2);
+
+    } catch (error) {
+        document.getElementById("result").innerText = "Error: " + error.message;
+    }
+});
+</script>
+
+</body>
+</html>

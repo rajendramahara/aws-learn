@@ -1,0 +1,43 @@
+target is unhealth so to resolve this
+connect to the private ec2 instance for this create bastion host new ec2
+Step 1: Bastion-Host
+⚠️ Select PUBLIC subnet
+Example:  Public-Subnet-1
+Enable:Auto Assign Public IP → Enable
+
+Step 2 — Security Group
+Create new security group.
+bastion-sg
+Inbound rules:
+Type	Port	Source
+SSH	22	Your IP
+Example:  22 → My IP
+
+Step 3:  How to Connect to Bastion Host
+ssh -i project-key.pem ec2-user@BASTION_PUBLIC_IP
+
+Step 4: Connect From Bastion to Private EC2
+for this change private ec2 security group 
+Type	Port	Source
+SSH	22	Bastion SG
+
+ssh ec2-user@PRIVATE-IP
+chmod 400 project-key.pem
+ssh -i project-key.pem ec2-user@10.0.1.188
+
+Laptop
+   │
+   │ SSH
+   ▼
+Bastion Host (Public Subnet)
+   │
+   │ SSH using key.pem
+   ▼
+Private EC2 Instance
+
+Step 5: Check If Web Server Is Running on EC2
+sudo systemctl status httpd
+sudo yum install httpd -y
+sudo systemctl start httpd
+sudo systemctl enable httpd
+curl localhost

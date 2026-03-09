@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CSV Upload</title>
+</head>
+<body>
+
+<h2>Upload CSV to S3</h2>
+
+<input type="file" id="csvFile" accept=".csv">
+<button onclick="uploadCSV()">Upload</button>
+
+<p id="status"></p>
+
+<script>
+async function uploadCSV() {
+    const file = document.getElementById("csvFile").files[0];
+    if (!file) {
+        alert("Choose CSV file");
+        return;
+    }
+
+    document.getElementById("status").innerText = "Requesting upload URL...";
+
+    // 1. Request presigned URL
+    const response = await fetch(
+        "https://YOUR_API_ID.execute-api.us-east-1.amazonaws.com/prod/get-upload-url",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-filename": file.name
+            },
+            body: "{}"
+        }
+    );
+
+    const data = await response.json();
+    console.log("Presign", data);
+
+    document.getElementById("status").innerText = "Uploading to S3...";
+
+    // 2. Upload to S3
+    const upload = await fetch(data.uploadUrl, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "text/csv"
+        },
+        body: file
+    });
+
+    if (upload.ok) {
+        document.getElementById("status").innerText = "File Uploaded SUCCESSFULLY";
+    } else {
+        document.getElementById("status").innerText = "Upload FAILED";
+    }
+}
+</script>
+
+</body>
+</html>

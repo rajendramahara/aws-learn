@@ -1,0 +1,65 @@
+“Galactic Wildlife Monitoring System”
+Storyline
+
+The year is 2135, and Earth, along with three other planets, has created a joint initiative to monitor endangered alien species across galaxies.
+Your task is to build a cloud-powered system to allow Rangers from different planets to submit wildlife sighting reports (including the number of animals spotted), validate them through an API, store them, and display analytics.
+
+⭐ Project Overview
+
+You will build:
+
+Task 1 — Wildlife Sighting Submission System
+
+A static website (HTML/JS) hosted on Amazon S3 where planetary rangers submit wildlife sighting reports.
+
+bucket policy
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::interstellar-deliveries/*"
+        }
+    ]
+}
+
+Task 2 — Wildlife Analytics Dashboard
+
+A second webpage showing statistics, real-time sightings, and aggregated numbers.
+
+Helper API
+
+A pre-built API (mock URL in this project) will validate the sighting report and return a tracking token if the data is valid.
+
+⭐ THEME
+
+Instead of intergalactic marketplace orders, this project uses wildlife sightings, animal species, and conservation tokens.
+
+🐾 Species List (10 Galactic Animals)
+
+Your form must contain these 10 animals with quantity input fields:
+Stellar Lynx
+Nebula Eagle
+Crimson Hornbeast
+Void Panther
+Aqua Serpent
+Moonlight Wolf
+Quasar Turtle
+Luminous Beetle
+Stormback Ape
+Crystal Mantis
+
+🧩 YOUR RESPONSIBILITY
+
+You must build a complete AWS workflow:
+
+✔ Create a static website hosted on S3
+✔ Route traffic using CloudFront (recommended)
+✔ Use API Gateway + Lambda to validate/store data
+✔ Use DynamoDB to store sighting records
+✔ Use IAM with least-privilege permissions
+✔ Build a second webpage showing analytics
+✔ Display real-time data with Lambda + DynamoDB Query

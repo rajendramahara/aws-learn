@@ -1,0 +1,101 @@
+Challenges
+1. The challenge is to figure out the passphrase that was used to encrypt files in the
+legacy application.
+2. There are 5000 possible key files numbered from frp-5000.txt to frp-9999.txt. These
+are the potential files to be analyzed.
+3. The simplest way is to use concurrent lambda functions to bruteforce the code files,
+and check it individually against a list of known passphrases stored in a database.
+4. The company has restricted usage of server based compute services and expects
+you to use only serverless compute services like AWS Lambda.
+5. The suggested solution involves using AWS Lambda function to perform the analysis
+on each of the 5000 individual files.
+6. The possible passphrase could be one within a dynamically changing list of
+passphrases. You need to store the list in a DynamoDB table and lookup the
+matches each time.
+
++-----------+       +----------+       +---------+       +---------+       +-------------+
+|   S3      | ----> |   SNS    | ----> |   SQS   | ----> | Lambda  | ----> |  DynamoDB   |
+| (upload)  |       | (notify) |       | (queue) |       |(process)|       | (store data)|
++-----------+       +----------+       +---------+       +---------+       +-------------+
+
+STEP 1 — Create DynamoDB Tables
+    Table 1: Dictionary
+    Table 2: Checks
+    Table 3: Matches    
+
+STEP 2 — Create S3 Bucket
+
+STEP 3 - Create SNS Topic
+    Go to AWS Console → SNS → Topics → Create topic
+    Type: Standard (⚠️ NOT FIFO)
+    Name: frp-sns-topic (without .fifo)
+
+STEP 4 - Create SQS Queue
+    Create Dead Letter Queue (DLQ)
+    Go to SQS → Create queue
+    Name: frp-dlq
+    Type: Standard
+    Click Create queue
+
+
+    🔹 Create Main Queue
+    Name: frp-queue
+
+
+    Scroll down → expand Dead-letter queue
+    Enable it
+    Choose frp-dlq
+    Set Maximum receives to 3
+
+
+🔗 STEP 5 — Subscribe SQS to SNS Topic
+    We connect the SNS topic to the SQS queue.
+    Go to SNS → Topics → frp-sns-topic
+    Click Create subscription
+    Protocol: SQS
+    Endpoint: Paste the ARN of frp-queue
+    Click Create subscription
+
+    ✅ Allow SNS to send to SQS:
+    Go to SQS → frp-queue → Permissions tab
+    Click Edit access policy
+    Add this snippet inside "Statement" array:
+
+🧾 STEP 6 — Configure S3 Event Notification
+    Make S3 publish events to SNS when a new object is created.
+    Go to S3 → frp-bucket → Properties
+    Scroll down → Event notifications → Create event notification
+    Name: s3-to-sns
+    Event types: All object create events (s3:ObjectCreated:*)
+    Destination: SNS topic → select frp-sns-topic
+    Click Save changes
+
+STEP 7 — Create IAM Role for Lambda
+    Go to IAM → Roles → Create role
+    Trusted entity: AWS Service → Lambda
+    Attach policies:
+    AmazonS3ReadOnlyAccess
+    AmazonDynamoDBFullAccess
+    AWSLambdaSQSQueueExecutionRole
+    CloudWatchLogsFullAccess
+    Role name: lambda-frp-role
+
+
+🧮 STEP 8 — Create the Lambda Function: frp-passphrase-processor
+
+
+📦 STEP 9 — Connect SQS Trigger to Lambda
+    Go to Lambda → frp-processor → Configuration → Triggers → Add trigger
+    Trigger type: SQS
+    Select queue: frp-queue
+    Batch size: 1
+    Enable trigger ✅
+
+🧪 STEP 10 — Populate the Dictionary Table
+    To test, we’ll insert one known passphrase manually.
+    Go to DynamoDB → Tables → Dictionary → Explore table items → Create item
+    Add:
+    passphrase: "helloworld"
+    Save item ✅
+
+📤 STEP 11 — Upload a Test File to S3

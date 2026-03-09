@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>Admin Dashboard</h2>
+<button onclick="loadData()">Load Orders</button>
+
+<pre id="data"></pre>
+
+<script>
+async function loadData() {
+
+    const token = localStorage.getItem("token");
+    console.log("Token being sent:", token);
+
+    if(!token) {
+        alert("Not logged in");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const res = await fetch(
+        "https://j2v45exrmd.execute-api.us-east-1.amazonaws.com/prod/admin",
+        {
+            method: "GET",
+            headers: {
+                "Authorization": token
+            }
+        }
+    );
+
+    const data = await res.json();
+
+    if(res.status !== 200) {
+        alert("Unauthorized");
+        window.location.href = "login.html";
+        return;
+    }
+
+    document.getElementById("data").innerText =
+        JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>

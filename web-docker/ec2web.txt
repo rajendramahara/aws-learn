@@ -1,0 +1,83 @@
+Local Machine (IAM User + AWS CLI)
+        |
+        |  docker push
+        v
+     Amazon ECR
+        ^
+        |
+        |  docker pull (IAM Role)
+        |
+      EC2 Instance (Docker)
+
+
+Create IAM User for new ec2 docker user whci we configurein Local Machine
+Purpose: Push image to ECR & manage AWS
+
+AWS Console → IAM
+Users → Create user
+Username: local-ecr-user
+Select:
+✅ Programmatic access
+Attach Policies
+Attach directly:
+✅ AmazonEC2ContainerRegistryFullAccess
+✅ EC2FullAccess (only for learning)
+Create user
+Download Access Key & Secret Key
+
+Configure AWS CLI on Local Machine
+aws configure
+aws sts get-caller-identity
+
+📦PHASE 1: CREATE ECR REPOSITORY from console or CLI
+🐳PHASE 2: CREATE DOCKER APP (LOCAL)
+mkdir aws-docker-web
+cd aws-docker-web and index.html
+
+Dockerfile:
+    FROM nginx:latest
+    COPY index.html /usr/share/nginx/html/index.html
+    EXPOSE 80
+
+Check: docker images
+
+🔑PHASE 3: LOGIN TO AMAZON ECR (LOCAL): all command are in ECr push  image and then push image we will pull in ec2
+
+🖥️PHASE 4: CREATE IAM ROLE FOR EC2 with Permissions: AmazonEC2ContainerRegistryReadOnly
+🚀PHASE 5: LAUNCH EC2 INSTANCE
+🔐PHASE 6: CONNECT TO EC2: ssh -i key.pem ec2-user@<PUBLIC_IP>
+
+🐳 PHASE 7: INSTALL DOCKER ON EC2
+sudo dnf update -y
+sudo dnf install docker -y
+sudo dnf install aws-cli -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker ec2-user
+exit
+Reconnect: ssh -i key.pem ec2-user@<PUBLIC_IP>
+docker run hello-world
+
+📥PHASE 8: PULL IMAGE FROM ECR (NO LOGIN!) in EC2
+sudo dnf install aws-cli -y 
+docker pull <ECR_URI>:latest
+docker pull 800939197474.dkr.ecr.us-east-1.amazonaws.com/aws-docker-web:latest
+docker run -d -p 80:80 \
+docker ps
+curl http://localhost
+
+▶️ PHASE 9: RUN CONTAINER
+docker run -d -p 80:80 <ECR_URI>:latest
+docker ps
+check port binding: sudo ss -tulpn | grep :80
+
+Test run : curl http://169.254.169.254/latest/meta-data/iam/info
+aws sts get-caller-identity
+again login in ecr: aws ecr get-login-password --region us-east-1 \
+| docker login --username AWS --password-stdin 800939197474.dkr.ecr.us-east-1.amazonaws.com
+then : 
+docker run -d -p 80:80 \
+800939197474.dkr.ecr.us-east-1.amazonaws.com/aws-docker-web:latest
+
+
+🌐 PHASE 10: ACCESS APP

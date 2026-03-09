@@ -1,0 +1,29 @@
+User uploads image → S3 Source Bucket
+                      ↓ (Event Trigger)
+                    Lambda
+                      ↓
+              S3 Destination Bucket
+
+STEP 1️⃣ Create Source Bucket
+STEP 2️⃣ Create Destination Bucket
+Create IAM Role For Lambda
+STEP 3 Create Lambda Function
+STEP 4 — Create Pillow Layer (Correct Way)
+    OPTION 1 — Use AWS Serverless Application Repository (No ZIP, No Docker) or lambda function
+    
+    Steps: Go to AWS Console
+    Search → Serverless Application Repository
+    Search: pillow layer → deploy → layer will create 
+
+    OPTION 2 — Step 4.1 — Run Lambda Docker Image
+    docker run -it public.ecr.aws/lambda/python:3.10 bash
+    Step 4.2 — Install Pillow
+    mkdir python
+    pip install pillow -t python/
+    yum install zip -y
+    zip -r pillow-layer.zip python
+    exit
+    Step 4.3 — Copy ZIP From Container: docker cp <container_id>:/pillow-layer.zip .
+
+STEP 5 — Add Lambda Code
+STEP 6 — Configure S3 Trigger(Event Notifications)

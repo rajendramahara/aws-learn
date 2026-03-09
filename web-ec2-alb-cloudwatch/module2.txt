@@ -1,0 +1,100 @@
+Application logs
+       │
+       ▼
+CloudWatch Log Group (/regional/api)
+       │
+       ▼
+Subscription Filter
+       │
+       ▼
+Lambda Function (log processor)
+       │
+       ▼
+Custom Metric
+Regional/OrdersCreated
+       │
+       ▼
+CloudWatch Alarm
+       │
+       ▼
+SNS Notification
+       │
+       ▼
+CloudWatch Dashboard
+
+STEP 1 — Create CloudWatch Log Group
+CloudWatch → Log Groups
+
+STEP 2 — Install CloudWatch Agent on EC2
+sudo yum install amazon-cloudwatch-agent -y
+
+Verify:
+amazon-cloudwatch-agent-ctl -a status
+amazon-cloudwatch-agent-ctl -a start 
+
+STEP 3 — Create Agent Configuration
+sudo nano /opt/aws/amazon-cloudwatch-agent/bin/config.json
+
+{
+ "logs": {
+   "logs_collected": {
+     "files": {
+       "collect_list": [
+         {
+           "file_path": "/var/app/orders.log",
+           "log_group_name": "/regional/orders",
+           "log_stream_name": "{instance_id}",
+           "timestamp_format": "%Y-%m-%d %H:%M:%S"
+         }
+       ]
+     }
+   }
+ }
+}
+
+STEP 4 — Start CloudWatch Agent
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+-a fetch-config \
+-m ec2 \
+-c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json \
+-s
+
+sudo systemctl status amazon-cloudwatch-agent
+
+STEP 6 — Verify Logs in CloudWatch
+Open CloudWatch → Log Groups → /regional/orders → log stream = instance-id
+
+STEP 7 — Create Lambda Function with coudwatch permissison CloudWatchFullAccess
+STEP 8 — Create Log Subscription: CloudWatch → Log Groups  Subscription filter
+
+STEP 9 – Create Metric Filter
+Go to: CloudWatch → Log groups → orders-log-group → Metric filters → Create metric filter
+Filter pattern: order_created
+Configuration: Metric namespace: Regional
+Metric name: OrdersCreated
+Metric value: 1
+Default value: 0
+
+STEP 10 — Test Metric Creation: CloudWatch → Metrics
+Navigate: RegionalOrders → OrdersCreated
+
+STEP 11 — Create Alarm: CloudWatch → Alarms → Create Alarm
+Select metric: OrdersCreated
+Condition: Threshold: OrdersCreated > 5
+
+STEP 12 — Create SNS Notification
+
+
+STEP 13 – Create Dashboard: orders-monitoring-dashboard
+All Metric widget
+Widget 1 – Regional → OrdersCreated 
+Statistic → Sum
+
+Widget 2 – ALB 5XX Errors: AWS/ApplicationELB → HTTPCode_ELB_5XX_Count & Statistic: Sum
+Widget 3 – AWS/ApplicationELB → HealthyHostCount
+Statistic: Average
+
+for i in {1..20}
+do
+curl -X POST ALB/orders -d '{"item":"mouse"}'
+done

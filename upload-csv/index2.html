@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee List</title>
+</head>
+<body>
+
+<h2>Employee List</h2>
+<button onclick="loadData()">Load Employees</button>
+
+<ul id="list"></ul>
+
+<script>
+function loadData() {
+    fetch("https://6atxcqf8xi.execute-api.us-east-1.amazonaws.com/employee")
+    .then(response => response.json())
+    .then(result => {
+
+        // VERY IMPORTANT
+        const data = typeof result.body === "string"
+            ? JSON.parse(result.body)
+            : result;
+
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach(emp => {
+            const li = document.createElement("li");
+            li.textContent = emp.name + " - " + emp.department;
+            list.appendChild(li);
+        });
+    })
+    .catch(error => console.error("Error:", error));
+}
+</script>
+
+</body>
+</html>

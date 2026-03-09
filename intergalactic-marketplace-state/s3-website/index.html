@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intergalactic Marketplace - Place Order</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+    body { 
+        font-family: Arial, sans-serif; 
+        background: #f4f7fc; 
+        padding: 20px; 
+        margin: 0;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    .item { 
+        display: flex; 
+        justify-content: space-between; 
+        margin: 10px 0; 
+        padding: 8px; 
+        background: #f1f1f1;
+        border-radius: 8px;
+    }
+
+    input[type="number"], input[type="text"] {
+        padding: 8px;
+        width: 120px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 15px;
+        border: none;
+        border-radius: 8px;
+        background: #007bff;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #005fcc;
+    }
+
+    #summaryBtn {
+        background: #28a745;
+        margin-top: 10px;
+    }
+
+    #summaryBtn:hover {
+        background: #1e7e34;
+    }
+
+    pre {
+        background: #272822;
+        color: #fff;
+        padding: 15px;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin-top: 20px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Intergalactic Marketplace</h2>
+
+    <label><strong>Agent Name:</strong></label>
+    <input id="agent" type="text" placeholder="Enter agent name">
+
+    <h3>Items</h3>
+    <div id="items"></div>
+
+    <button onclick="submitOrder()">Submit Order</button>
+
+    <button id="summaryBtn" onclick="window.location.href='summary.html'">
+        View Summary
+    </button>
+
+    <pre id="result" style="display:none;"></pre>
+</div>
+
+<script>
+const ITEMS = [
+    "Onniz",
+    "Nectan",
+    "Randolite Bark",
+    "Jenlomeryon Leaf",
+    "Afistase Fruit",
+    "Cabardson Seed",
+    "H1c Imonium Berry",
+    "Soipruolite Pollen",
+    "Wheeleaon Root",
+    "Poif Flower"
+];
+
+let itemsDiv = document.getElementById("items");
+
+ITEMS.forEach(name => {
+    itemsDiv.innerHTML += `
+        <div class="item">
+            <span>${name}</span>
+            <input type="number" min="0" value="0" id="${name}">
+        </div>
+    `;
+});
+
+async function submitOrder() {
+    const agent = document.getElementById("agent").value;
+    const items = {};
+
+    ITEMS.forEach(name => {
+        let qty = parseInt(document.getElementById(name).value);
+        if (qty > 0) items[name] = qty;
+    });
+
+    if (!agent) {
+        alert("Please enter agent name");
+        return;
+    }
+
+    if (Object.keys(items).length === 0) {
+        alert("Please select at least one item");
+        return;
+    }
+
+    const payload = { agent, items };
+
+    const res = await fetch("https://mzwkyf81g6.execute-api.us-east-1.amazonaws.com/prod/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const resultBox = document.getElementById("result");
+
+    resultBox.style.display = "block";
+    resultBox.innerText = JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>

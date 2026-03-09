@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sales Summary</title>
+  <style>
+    body { font-family: Arial; background:#f5f5f5; }
+    .box {
+      width:400px; margin:50px auto; background:white;
+      padding:20px; text-align:center;
+    }
+    p { font-size:18px; }
+  </style>
+</head>
+
+<body>
+<div class="box">
+<h2>Sales Summary</h2>
+<p id="orders"></p>
+<p id="custom"></p>
+<p id="avg"></p>
+<p id="sum"></p>
+</div>
+
+<script>
+const API_BASE = "https://xgyua7xzqk.execute-api.us-east-1.amazonaws.com/dev";
+
+fetch(API_BASE + "/sales")
+.then(r => r.json())
+.then(d => {
+  document.getElementById("orders").innerText =
+    "Total Orders: " + d.orders;
+  document.getElementById("custom").innerText =
+    "Custom Orders: " + d.customizations;
+  document.getElementById("avg").innerText =
+    "Average Cost: ₹" + d.average;
+  document.getElementById("sum").innerText =
+    "Total Sales: ₹" + d.sum;
+});
+</script>
+
+</body>
+</html>

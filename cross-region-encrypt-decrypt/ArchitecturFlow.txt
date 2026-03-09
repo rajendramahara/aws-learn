@@ -1,0 +1,69 @@
+User (MumbVirginiaai)
+   ↓
+S3 Website
+   ↓
+API Gateway (Virginia)
+   ↓
+Lambda Encrypt
+   ↓
+KMS Encrypt
+   ↓
+DynamoDB Global Table
+   ↓ (Auto replication)
+DynamoDB (Mumbai)
+   ↓
+Lambda Decrypt
+   ↓
+API Gateway (Mumbai)
+   ↓
+User receives decrypted message
+
+🏗️ PART 1 — CREATE ALL RESOURCES IN REGION 1 (US East (N. Virginia))
+STEP 1️⃣ Create KMS Key (Encryption Key) with Alias name: alias/secret-cross-region-key
+Regionality: Multi-Region key
+
+Then after creation:
+
+👉 Go to the key
+👉 Click Replicate key
+👉 Choose Region: Asia Pacific (Mumbai)
+
+STEP 2️⃣ Create DynamoDB Table
+STEP 3️⃣ Convert to Global Table (Important)
+    Go to → Global tables
+    Click → Create replica
+    Add replica region:
+    👉 Asia Pacific (Mumbai)
+
+STEP 4️⃣ Create IAM Role for Lambda: 
+AWSKeyManagementServicePowerUser
+and inline policy :	
+{
+    "Effect": "Allow",
+    "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:GenerateDataKey",
+        "kms:DescribeKey"
+    ],
+    "Resource": "arn:aws:kms:us-east-1:800939197474:key/mrk-78dcb2d6153c401eb0f4bea3f5a1a556"
+}
+
+STEP 5️⃣ Create Lambda Function (Encrypt Lambda)
+STEP 6️⃣ Create API Gateway (POST API): HTTP API
+POST /send
+
+🌎 PART 2 — CREATE ALL RESOURCES IN REGION 2 (Mumbai)
+STEP 1️⃣ Verify DynamoDB Replica
+STEP 2️⃣ Check KMS Key (IMPORTANT)
+STEP 3️⃣ Create Lambda (Decrypt Function)
+IAM Permission Required
+{
+  "Effect": "Allow",
+  "Action": [
+    "kms:Decrypt"
+  ],
+  "Resource": "*"
+}
+STEP 4️⃣ Create API Gateway (GET API) in region for GET
+GET /receive

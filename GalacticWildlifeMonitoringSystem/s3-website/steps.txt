@@ -1,0 +1,112 @@
+1) Create DynamoDB Table
+Table name: WildlifeSightings.  
+Primary key: id (Partition key) — type String.
+
+Attributes we'll store on each item (no schema enforced by DynamoDB):
+    id (PK) — UUID string
+    timestamp — ISO 8601 string (e.g. 2025-12-02T09:00:00Z)
+    ranger — string
+    planet — string
+    sightings — map (animal -> integer)
+    tracking_token — string
+
+2) Create IAM Role for Lambda (least privilege)
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:GetItem"
+      ],
+      "Resource": "arn:aws:dynamodb:REGION:ACCOUNT_ID:table/WildlifeSightings"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+
+
+3) Create Lambda: process_sighting (validate & store)
+
+Stores the record in DynamoDB.
+Console: Services → Lambda → Create function
+Author from scratch
+Function name: process_sighting
+Runtime: Python 3.11 (or 3.10)
+
+Permissions: Use existing role → choose lambda-wildlife-role
+    Create function.
+    Environment variables (on Lambda Configuration → Environment variables):
+    DDB_TABLE = WildlifeSightings
+
+4) Create Lambda for analytics: fetch_analytics
+    We’ll provide another Lambda that scans DynamoDB and aggregates totals (small data volumes OK for practice). For production use, use DynamoDB streams / pre-aggregated counters.
+    Create function: fetch_analytics, Python 3.11, same role lambda-wildlife-role.
+
+5) Create API Gateway (HTTP API) & integrate Lambda
+
+We will create two routes:
+    POST /submit → process_sighting (integration)
+    GET /analytics → fetch_analytics
+
+Console: Services → API Gateway → Create API
+Choose HTTP API (lower friction).
+    Click Build.
+    Under Integrations → Add integration → Lambda → choose process_sighting.
+    Add route: Method POST, Resource path /submit.
+    Add another integration for fetch_analytics, route GET path /analytics.
+
+Configure CORS:
+    Enable CORS for the API: Allow origins * (or your website domain), methods GET,POST, and allow headers Content-Type,Authorization.
+
+6) Create S3 buckets and host frontend
+Console: Services → S3 → Create bucket
+Enable static website hosting:
+    Open bucket → Properties → Static website hosting → Edit → Enable.
+    Hosting type: Host a static website.
+
+Bucket Policy for public read (sample) — Console → Permissions → Bucket policy → Edit:
+    {
+        "Version":"2012-10-17",
+        "Statement":[
+            {
+            "Sid":"PublicReadGetObject",
+            "Effect":"Allow",
+            "Principal":"*",
+            "Action":["s3:GetObject"],
+            "Resource":["arn:aws:s3:::galactic-wildlife-<your-unique-suffix>/*"]
+            }
+        ]
+    }
+
+CORS configuration (Permissions → CORS configuration):
+
+[
+    {
+        "AllowedHeaders": [
+            "*"
+        ],
+        "AllowedMethods": [
+            "GET",
+            "POST"
+        ],
+        "AllowedOrigins": [
+            "*"
+        ],
+        "ExposeHeaders": []
+    }
+]
+
+

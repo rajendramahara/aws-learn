@@ -1,0 +1,67 @@
+Step 1 — Create New Target Group for v2
+We will convert EC2-2 → v2
+Step 2 — Register v2 Instance
+Step 3 — Add v2 Target Group to ALB Listener(Configure Canary Traffic)
+    EC2 → Load Balancers  → Your ALB  → Listeners → View/edit rules
+    Change:  Forward to → orders-tg-v1
+    To: Forward to → Multiple target groups
+    v1: 9
+    v2: 1
+
+Step 4 — Deploy v2 Application
+Code for v1 Instance
+elif self.path=="/orders":
+    self.send_response(200)
+    self.end_headers()
+    response = {
+        "version": "v1",
+        "orders": orders
+    }
+    self.wfile.write(json.dumps(response).encode())
+
+Code for v2 Instance
+elif self.path=="/orders":
+    self.send_response(200)
+    self.end_headers()
+    response = {
+        "version": "v2",
+        "orders": orders
+    }
+    self.wfile.write(json.dumps(response).encode())
+
+Restart the API test
+sudo pkill -f app.py
+sudo python3 /home/ec2-user/app.py
+sudo python3 /var/app/app.py
+nohup python3 /home/ec2-user/app.py &
+{"version": "v1", "orders": []}
+
+Step 5 — Fault Drill
+SSH into v1 instance.
+sudo pkill python
+pkill -f app.py
+Now:
+curl localhost/health
+fails.
+
+After a few checks: Target → Unhealthy
+Traffic automatically moves to the healthy instance.
+This demonstrates fault isolation.
+
+Step 6 — Observe Metrics(CloudWatch → Metrics)
+Check:
+
+Metric	Purpose
+HTTPCode_ELB_5XX	errors
+TargetResponseTime	latency
+HealthyHostCount	instance health
+
+MetricBehavior
+HealthyHostCount: drops to 1
+ALB 5XX: should remain low
+OrdersCreated:continues
+Take screenshots.
+
+How to Rollback
+1 set v2 weight to 0
+2 verify metrics

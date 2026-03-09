@@ -1,0 +1,43 @@
+1: Build Two Instance Web API with ALB
+
+VPC → Create VPC: CIDR: 10.0.0.0/16
+Create 2 public subnets
+Internet Gateway
+
+Step 1 — Create Security Groups
+ALB Security Group: Inbound: HTTP 80
+Source: 0.0.0.0/0
+
+EC2 Security Group: Inbound: HTTP 80
+Source: ALB Security Group
+
+Step 2 — Launch EC2 Instances
+*Attach IAM role with permission 
+    AmazonSSMManagedInstanceCore
+    CloudWatchAgentServerPolicy
+
+Step 3 — Create Target Group
+Step 4 — Register Targets
+Instance 1
+Instance 2
+Step 5 — Create Application Load Balancer
+test: curl -X POST ALB-DNS/orders \
+-d '{"item":"laptop"}'
+
+curl -X POST alb-dna/orders \
+-H "Content-Type: application/json" \
+-d '{"item":"laptop"}'
+
+if /orders is not working check app.py 
+login with session manager
+ps aux | grep python 
+
+sudo python3 /home/ec2-user/app.py
+Switch to root: sudo su
+ls /home/ec2-user
+
+restart
+python3 /home/ec2-user/app.py
+SSM Agent instal check: sudo systemctl status amazon-ssm-agent
+sudo yum install amazon-ssm-agent -y
+sudo tail/cat /var/app/orders.log

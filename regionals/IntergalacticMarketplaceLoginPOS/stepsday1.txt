@@ -1,0 +1,52 @@
+🎯 Objective
+
+Create a webpage where:
+Agent selects items
+Order is sent to backend
+Order is stored in DynamoDB
+Order signature is generated
+
+TASK 1: 
+🔹 STEP 1 – Create DynamoDB Table: Orders
+🔹 STEP 2 – Create Order Lambda: PlaceOrderLambda
+🔹 STEP 3 – Create API Gateway (HTTP API)
+    POST /order
+    Attach integration → Select Lambda → PlaceOrderLambda
+    Enable CORS.
+🔹 STEP 4 – Host Website on S3 wth HTML Page(static website on)
+    S3 → Your Bucket → Permissions → Bucket Policy
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::YOUR_BUCKET_NAME/*"
+    }
+  ]
+}
+
+TASK 2 – Admin Dashboard (Password Protected)
+🎯 Objective
+
+Password protected page
+View all orders
+Show total number of orders
+Show total individual item counts
+Show most ordered item
+
+🔹 STEP 1 – Create Login Lambda
+🔹 STEP 2 – Create Admin Data Lambda
+🔹 STEP 3 – Add API Routes (Task 2)
+    POST /login → AdminLoginLambda
+    GET /admin → AdminDashboardLambda
+🔹 STEP 4 – Login Page
+🔹 STEP 5 – Admin Dashboard Page
+
+🔐 Complete Flow (Final Architecture)
+
+User → Order Page → API Gateway → Lambda → DynamoDB
+Admin → Login → API Gateway → Lambda → Token
+Admin → Dashboard → API Gateway (with token) → Lambda → DynamoDB

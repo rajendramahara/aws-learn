@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Intergalactic Summary Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            text-align: center;
+        }
+        h1 {
+            background: #1f2937;
+            color: white;
+            padding: 15px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 60%;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background: #3b82f6;
+            color: white;
+        }
+        .grand {
+            font-weight: bold;
+            background: #10b981;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Sales Summary Dashboard</h1>
+
+<h2>Total Orders: <span id="totalOrders">Loading...</span></h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Total Quantity</th>
+        </tr>
+    </thead>
+    <tbody id="summaryTable"></tbody>
+</table>
+
+<script>
+async function loadSummary() {
+
+    const response = await fetch("https://j2v45exrmd.execute-api.us-east-1.amazonaws.com/prod/summary");
+    const data = await response.json();
+
+    document.getElementById("totalOrders").innerText = data.total_orders;
+
+    const table = document.getElementById("summaryTable");
+
+    for (let item in data.item_totals) {
+        let row = `<tr>
+            <td>${item}</td>
+            <td>${data.item_totals[item]}</td>
+        </tr>`;
+        table.innerHTML += row;
+    }
+
+    table.innerHTML += `
+        <tr class="grand">
+            <td>Grand Total</td>
+            <td>${data.grand_total}</td>
+        </tr>`;
+}
+
+loadSummary();
+</script>
+
+</body>
+</html>

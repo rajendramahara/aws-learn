@@ -1,0 +1,114 @@
+✅ Task A1: Install htop
+
+STEP 1: Create an EC2 Instance (AWS)
+Create an EC2 Instance (AWS)
+Ubuntu 22.04 LTS (recommended)
+
+3. Network Settings (Firewall)
+Create / use Security Group
+Allow:
+SSH → Port 22 → Source: My IP
+HTTP → Port 80 → Source: 0.0.0.0/0
+
+STEP 2: Connect to EC2 via SSH
+Connect to EC2 via SSH
+SSH Command
+For Ubuntu:
+    ssh -i healthplus-key.pem ubuntu@<PUBLIC_IP>
+
+STEP 3: Update System
+Ubuntu:  sudo apt update && sudo apt upgrade -y
+
+✅ Task A2: Install htop
+STEP 4: Install htop
+sudo apt install htop -y
+Run htop : htop
+
+✅ Task B1: logs management verification
+
+Verify System Logs (Task B1)
+
+STEP 5: Verify System Logs (Task B1)
+1. Check rsyslog status: systemctl status rsyslog
+2. Verify log directory: ls /var/log
+3. View recent logs: tail -n 20 /var/log/syslog
+
+STEP 6: Install Web Server (Apache)
+sudo apt install apache2 -y
+sudo systemctl start apache2
+sudo systemctl enable apache2
+
+✅ Task B2: System information
+
+STEP 7: Create Dashboard HTML Page
+1. Go to web directory: cd /var/www/html
+2. Create file: sudo nano index.html
+
+
+✅ Task C1: User & Access Hardening (8 Marks)
+STEP 1: Create New User cloudadmin
+sudo adduser cloudadmin
+
+STEP 2: Add User to Sudo Group
+sudo usermod -aG sudo cloudadmin
+Verify: groups cloudadmin(cmd)
+You should see:
+    cloudadmin : cloudadmin sudo
+
+
+STEP 3: Test Sudo Access (IMPORTANT)
+Switch user: su - cloudadmin
+Test sudo: sudo whoami
+Output: root
+
+STEP 4: Disable Direct Root SSH Login
+Edit SSH config: sudo nano /etc/ssh/sshd_config
+Find: #PermitRootLogin prohibit-password
+Change to:  PermitRootLogin no
+Restart SSH: sudo systemctl restart ssh
+
+
+✅ Task C2: Log Backup Script (6 Marks)
+🎯 Objective
+Archive /var/log
+Use timestamped .tar.gz
+Store in /home/ubuntu/logbackup
+
+STEP 1: Create Backup Directory
+mkdir -p /home/ubuntu/logbackup
+
+STEP 2: Create Script File
+nano /home/ubuntu/logbackup.sh
+
+STEP 3: Paste Script Content
+#!/bin/bash
+
+BACKUP_DIR="/home/ubuntu/logbackup"
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+BACKUP_FILE="logbackup_$TIMESTAMP.tar.gz"
+
+tar -czf $BACKUP_DIR/$BACKUP_FILE /var/log
+
+STEP 4: Make Script Executable
+chmod +x /home/ubuntu/logbackup.sh
+
+STEP 5: Run Script Manually
+sudo /home/ubuntu/logbackup.sh
+Verify: ls -lh /home/ubuntu/logbackup
+    cat /home/ubuntu/logbackup.sh
+
+✅ Task C3: Scheduled Automation (Cron) (6 Marks)
+🎯 Objective
+    Run backup daily at 1:30 AM
+
+STEP 1: Edit Crontab
+crontab -e
+
+STEP 2: Add Cron Entry
+30 1 * * * /home/ubuntu/logbackup.sh
+
+STEP 3: Verify Cron Job
+crontab -l
+
+
+

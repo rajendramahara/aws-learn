@@ -1,0 +1,72 @@
+Image Rekopgnation
+
+User uploads image
+        ↓
+Input S3 Bucket
+        ↓ (event trigger)
+AWS Lambda
+        ↓
+AWS Rekognition (detect labels)
+        ↓
+Category decision logic
+        ↓
+ ┌──────────────┬───────────────┐
+ │              │               │
+DynamoDB     Output S3 Bucket
+(metadata)   (Dog/, Cat/, etc.)
+
+STEP 1: AWS Console → IAM → Roles → Create role: ImageClassificationLambdaRole
+Attach all of these:
+AmazonS3FullAccess
+AmazonRekognitionFullAccess
+AmazonDynamoDBFullAccess
+AmazonSNSFullAccess
+CloudWatchLogsFullAccess
+
+STEP 2: Create Input Bucket: india-skills-image-input
+Create Folder uploads/
+Block public access: ✅ ON
+bucket policy:
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowRekognitionReadAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rekognition.amazonaws.com"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::img-rekognition-input/uploads/*"
+    }
+  ]
+}
+
+
+STEP 3: Create Output Bucket: india-skills-image-output
+Block public access: ❌ OFF (needed for UI)
+policy: 
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicRead",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::india-skills-image-output/*"
+    }
+  ]
+}
+
+STEP 4: Create DynamoDB Table: ImageMetadata
+
+STEP 5: Create Lambda Function
+
+STEP 6: Configure S3 Trigger
+Lambda → Add trigger
+Source: S3
+Bucket: india-skills-image-input
+Event: PUT
+Prefix: uploads/
+Suffix: .jpg, .png

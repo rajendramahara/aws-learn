@@ -1,0 +1,57 @@
+STEP 1 — Create S3 Bucket for Image Uploads
+
+STEP 2 — Create SNS Topic
+
+STEP 3 — Create SQS Queue
+    1. Go to SQS Console → Create queue (ImageProcessingQueue)
+    2. Connect SQS to SNS
+        Protocol: SQS
+        Endpoint: Select → ImageProcessingQueue
+
+STEP 4 — Add S3 Event Notification → SNS
+    1. Create event notification
+
+    Name: SendToSNS
+    Event Type: PUT
+    Prefix: (leave blank)
+    Suffix: .png (or .jpg)
+
+    2. Destination
+    Choose: SNS
+    Select: ImageUploadTopic
+
+STEP 5 — Create DynamoDB Tables
+    🔹 Table 1 — ModerationRules (Read-Only)
+        Partition key: sensitive_label (String)
+
+    🔹 Table 2 — ModerationChecks
+        Partition key: image_id (String)
+        Sort key: timestamp (String)
+
+    🔹 Table 3 — ModerationAlerts
+        Partition key: image_id (String)
+        Sort key: timestamp (String)
+
+STEP 6 — Create IAM Role for Lambda
+Permissions:
+    AmazonS3FullAccess
+    AmazonRekognitionFullAccess
+    AmazonDynamoDBFullAccess
+    AmazonSQSFullAccess
+    AmazonSNSFullAccess
+    CloudWatchLogsFullAccess
+
+STEP 7 — Create Lambda Function
+
+STEP 8 — Attach SQS Trigger to Lambda
+In Function → Triggers → Add trigger
+Source: SQS
+Queue: ImageProcessingQueue
+Batch size: 1
+
+STEP 10 — Create SNS Email Subscription
+    1. Go to SNS → ImageUploadTopic → Subscriptions
+    Protocol: Email
+    Endpoint: your email
+
+STEP 11 — Upload Images to S3

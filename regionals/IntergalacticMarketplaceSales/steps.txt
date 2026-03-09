@@ -1,0 +1,42 @@
+Task 1 Flow
+S3 (105 sales Files)
+⬇
+Lambda – ProcessSalesOrders
+⬇
+Helper API (Validation + Signature)
+⬇
+DynamoDB
+
+Task 2 Flow
+S3 (5 Encrypted Files)
+⬇
+Lambda – ProcessSummaryOrders
+⬇
+Decrypt API
+⬇
+Helper API
+⬇
+DynamoDB
+⬇
+Summary API
+⬇
+Dashboard (S3 Static Hosting)
+
+TASK 1 IMPLEMENTATION
+🔹 STEP 1 – Download 105 Sales Orders
+🔹 STEP 2 – Create S3 Bucket for Task 1(and create event notification for trigger lambda)
+🔹 STEP 3 – Create ProcessSalesOrders Lambda
+    Add S3 Trigger
+    Bucket: intergalactic-sales-orders
+    Event type: Object Created (All)
+
+TASK 2 IMPLEMENTATION
+🔹 STEP 1 – Download 5 Encrypted Summary Files
+🔹 STEP 2 – Create S3 Bucket OR create and folder in task 1 bucket /summary and crea event notification for Task 2
+🔹 STEP 3 – Create ProcessSummaryOrders Lambda
+
+DASHBOARD IMPLEMENTATION
+🔹STEP 1 — Create STEP 1 — Create Summary Fetch Lambda
+🔹 STEP 2 — Expose via API Gateway
+    GET /summary
+🔹STEP 3 — Create Dashboard UI

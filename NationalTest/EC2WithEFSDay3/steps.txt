@@ -1,0 +1,121 @@
+Internet
+   |
+   |  HTTP 80
+   |
+  ALB (Path-based routing)
+   |----------------------------|
+   |                            |
+Flora TG                     Fauna TG
+   |                            |
+Flora EC2                    Fauna EC2
+   |                            |
+   |---- Shared EFS Mount ----|
+                 |
+             /efs/flora
+             /efs/fauna
+
+🔒 STEP 1: Create Security Groups
+1️⃣ EC2 Security Group (ec2-sg)
+
+Inbound
+Type	Port	Source
+HTTP	80	ALB SG
+SSH	22	Your IP
+NFS	2049	EFS SG
+
+Outbound: All traffic
+
+2️⃣ ALB Security Group (alb-sg)
+Inbound
+Type	Port	Source
+HTTP	80	0.0.0.0/0
+
+Outbound: All traffic
+
+3️⃣ EFS Security Group (efs-sg)
+Inbound
+Type	Port	Source
+NFS	2049	ec2-sg
+
+🖥️ STEP 2: Launch EC2 Instances
+Launch 2 EC2 Instances
+AMI: Amazon Linux 2
+Type: t2.micro
+Subnet: Flora → Subnet-A, Fauna → Subnet-B
+SG: ec2-sg
+
+Add User Data (Both Instances)
+#!/bin/bash
+yum update -y
+yum install -y httpd amazon-efs-utils php
+systemctl start httpd
+systemctl enable httpd
+
+📂 STEP 4: Create EFS
+Create EFS File System
+VPC: same as EC2
+Mount targets:
+Subnet-A
+Subnet-B
+SG: efs-sg
+
+🧰 STEP 5: Mount EFS (On Both EC2)
+SSH into each EC2 and run:
+sudo mkdir /efs
+sudo mount -t efs fs-xxxx:/ /efs
+sudo mkdir /efs/flora /efs/fauna
+sudo chmod -R 777 /efs
+
+Make EFS mount permanent
+echo "fs-xxxx:/ /efs efs defaults,_netdev 0 0" >> /etc/fstab
+mount -a
+df -h
+
+🖼️ STEP 6: Upload Images to EFS(Download Images)
+cd /efs/flora
+wget https://cloudcomputing-ws2021.s3.ap-south-1.amazonaws.com/Flora.zip
+unzip Flora.zip
+
+cd /efs/fauna
+wget https://cloudcomputing-ws2021.s3.ap-south-1.amazonaws.com/Fauna.zip
+unzip Fauna.zip
+
+STEP 7: Create Web Pages in both EC2
+1) Install Apache + PHP (if not already installed)
+sudo yum update -y
+sudo yum install -y httpd php
+sudo systemctl start httpd
+sudo systemctl enable httpd
+
+2) Create PHP web page for Flora & Fauna (Flora & Fauna EC2)
+//sudo nano /var/www/html/index.php
+sudo nano /var/www/html/flora/index.php
+sudo nano /var/www/html/fauna/index.php
+
+
+3) Create Symlink (Flora): sudo ln -s /efs/flora /var/www/html/flora
+4)Configure Apache to Allow Symlinks
+sudo nano /etc/httpd/conf/httpd.conf
+<Directory "/var/www/html">
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+</Directory>
+sudo systemctl restart httpd
+
+✅ STEP 8: Create Application Load Balancer (ALB)
+Name	ecology-alb
+Scheme	Internet-facing
+IP address type	IPv4
+
+Default listener: HTTP : 80
+Subnet-A (Public)
+Subnet-B (Public)
+Security Group: alb-sg
+HTTP	80	0.0.0.0/0
+
+🎯 STEP 9: Create Target Groups: flora-tg, fauna-tg with port 80
+🔀 STEP 10: ALB Listener Rules
+Rule 1: Flora: Path is /flora/* Forward to flora-tg
+Rule 2: Fauna: Path is /fauna/* Forward to fauna-tg
+

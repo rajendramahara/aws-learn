@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Intergalactic Delivery Service - Request Delivery</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee")
+        no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 30px;
+      background: rgba(0,0,0,0.6);
+      border-radius: 12px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #fff;
+      padding-bottom: 10px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 12px;
+      display: block;
+    }
+
+    input, select {
+      width: 95%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 6px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-right: 10px;
+      font-weight: bold;
+    }
+
+    .btn-submit { background: #00eaff; color: #000; }
+    .btn-submit:hover { background: #00c2cc; }
+
+    .btn-track { background: #ffd600; color: #000; }
+    .btn-track:hover { background: #e6c000; }
+
+    #msg { color: #00ff88; font-weight: bold; margin-top: 20px; }
+    #error { color: #ff4444; font-weight: bold; margin-top: 20px; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Intergalactic Delivery Request</h1>
+
+    <form id="deliveryForm">
+
+    <label>Sender Name:</label>
+    <input type="text" name="sender" required />
+
+    <label>Sender Planet:</label>
+    <input type="text" name="sender_planet" required />
+
+    <label>Receiver Name:</label>
+    <input type="text" name="receiver" required />
+
+    <label>Receiver Planet:</label>
+    <input type="text" name="receiver_planet" required />
+
+    <label>Package Weight (kg):</label>
+    <input type="number" name="weight" required min="0.1" step="0.1" />
+
+    <label>Priority:</label>
+    <select name="priority" required>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+    </select>
+
+
+    <button type="submit" class="btn-submit">Submit Delivery Request</button>
+
+    <button type="button" class="btn-track"
+    onclick="window.location.href='track.html'">
+    Track Delivery
+    </button>
+
+    </form>
+
+    <div id="msg"></div>
+    <div id="error"></div>
+  </div>
+
+
+<script>
+const API_BASE = "https://vjz7hiccki.execute-api.us-east-1.amazonaws.com/prod"; 
+const SUBMIT_URL = API_BASE + "/request";
+
+document.getElementById("deliveryForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  document.getElementById("msg").textContent = "";
+  document.getElementById("error").textContent = "";
+
+  const form = e.target;
+  console.log("form", form);
+  const payload = {
+    sender: form.sender.value.trim(),
+    sender_planet: form.sender_planet.value.trim(),
+    receiver: form.receiver.value.trim(),
+    receiver_planet: form.receiver_planet.value.trim(),
+    weight: parseFloat(form.weight.value),
+    priority: form.priority.value
+  };
+
+
+  console.log("payload", payload);
+
+  try {
+    const resp = await fetch(SUBMIT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    console.log("resp", resp);
+
+    const data = await resp.json();
+
+    if (resp.ok && data.tracking_id) {
+      document.getElementById("msg").textContent =
+        "Delivery Request Submitted! Tracking ID: " + data.tracking_id;
+    } else {
+      document.getElementById("error").textContent =
+        "Error: " + JSON.stringify(data);
+    }
+
+  } catch (err) {
+    document.getElementById("error").textContent = "Network Error: " + err;
+  }
+});
+</script>
+
+</body>
+</html>

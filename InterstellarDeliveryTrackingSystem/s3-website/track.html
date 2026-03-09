@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Track Your Delivery</title>
+
+  <style>
+    body {
+      background: #1a1a1a;
+      color: white;
+      font-family: Arial;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: rgba(0,0,0,0.7);
+      padding: 30px;
+      border-radius: 12px;
+    }
+    .id-item {
+      padding: 8px;
+      border-bottom: 1px solid #444;
+      cursor: pointer;
+    }
+    .id-item:hover {
+      background: #333;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .btn-search { background: #00ffc8; color: #000; }
+    .btn-home { background: #ffd600; color: #000; }
+    #result, #error { white-space: pre-line; margin-top: 20px; }
+    #result { color: #00ff88; }
+    #error { color: #ff4444; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Track Your Interstellar Delivery</h1>
+
+  <label>Enter Tracking ID:</label>
+  <input type="text" id="ticketInput" style="width: 95%; padding: 10px;">
+
+  <button class="btn-search" onclick="trackNow()">Track Now</button>
+  <button class="btn-home" onclick="window.location.href='index.html'">Back Home</button>
+
+  <div id="result"></div>
+  <div id="error"></div>
+
+  <h2 style="margin-top: 30px;">All Tracking IDs</h2>
+  <div id="idList" style="border: 1px solid #666; padding: 15px; border-radius: 8px; max-height: 250px; overflow-y: auto;">
+    Loading...
+  </div>
+</div>
+
+<script>
+const API_BASE = "https://vjz7hiccki.execute-api.us-east-1.amazonaws.com/prod";
+const TRACK_URL = API_BASE + "/track";
+
+// Load all tracking IDs on page load
+window.onload = loadAllIDs;
+
+async function loadAllIDs() {
+  try {
+    const resp = await fetch(TRACK_URL);
+    const data = await resp.json();
+
+    const box = document.getElementById("idList");
+    box.innerHTML = "";
+
+    if (data.tracking_ids.length === 0) {
+      box.innerHTML = "No tracking IDs found.";
+      return;
+    }
+
+    data.tracking_ids.forEach(id => {
+      const div = document.createElement("div");
+      div.className = "id-item";
+      div.textContent = id;
+
+      div.onclick = () => {
+        document.getElementById("ticketInput").value = id;
+        trackNow();
+      };
+
+      box.appendChild(div);
+    });
+
+  } catch (err) {
+    document.getElementById("idList").textContent = "Failed to load IDs.";
+  }
+}
+
+async function trackNow() {
+  const ticket = document.getElementById("ticketInput").value.trim();
+
+  if (!ticket) {
+    document.getElementById("error").textContent = "Please enter Tracking ID";
+    return;
+  }
+
+  const resp = await fetch(TRACK_URL + "?ticket=" + ticket);
+  const data = await resp.json();
+
+  if (!resp.ok) {
+    document.getElementById("error").textContent = data.error || "Tracking ID not found";
+    return;
+  }
+
+  document.getElementById("result").textContent =
+    "Tracking ID: " + data.tracking_id + "\n" +
+    "Status: " + data.status + "\n" +
+    "Sender: " + data.sender + "\n" +
+    "Receiver: " + data.receiver + "\n" +
+    "Route: " + data.sender_planet + " → " + data.receiver_planet + "\n" +
+    "Priority: " + data.priority + "\n" +
+    "Weight: " + data.weight + " kg\n" +
+    "ETA: " + data.eta + "\n" +
+    "Created: " + data.created_at;
+}
+</script>
+
+</body>
+</html>

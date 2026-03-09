@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #1d4ed8; }
+
+        /* Summary Stats Cards */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid #2563eb; }
+        .stat-label { font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: bold; }
+        .stat-value { font-size: 1.25rem; font-weight: bold; color: #111827; margin-top: 5px; }
+
+        /* Item Totals Grid (The summary you asked for) */
+        .totals-section { background: #ffffff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .totals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+        .total-item { background: #f9fafb; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 14px; }
+        .total-item span { font-weight: bold; color: #2563eb; }
+
+        /* Main Orders Table */
+        .table-container { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #f8fafc; text-align: left; padding: 12px 15px; color: #475569; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        
+        .item-badge { display: inline-block; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin: 2px 2px 2px 0; font-weight: 500; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>Admin Dashboard</h2>
+        <button onclick="loadData()">Refresh Data</button>
+    </div>
+
+    <div id="highlights" class="stats-grid hidden">
+        <div class="stat-card">
+            <div class="stat-label">Total Orders</div>
+            <div id="val-total-orders" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Most Ordered Item</div>
+            <div id="val-most-ordered" class="stat-value">-</div>
+        </div>
+    </div>
+
+    <div id="totals-area" class="totals-section hidden">
+        <div class="stat-label">Inventory Totals (Combined)</div>
+        <div id="item-totals-grid" class="totals-grid"></div>
+    </div>
+
+    <div id="orders-area" class="table-container hidden">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Agent</th>
+                    <th>Order Items</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+async function loadData() {
+    const token = localStorage.getItem("token");
+    if(!token) { window.location.href = "login.html"; return; }
+
+    try {
+        const res = await fetch("https://j2v45exrmd.execute-api.us-east-1.amazonaws.com/prod/admin", {
+            headers: { "Authorization": token }
+        });
+        const data = await res.json();
+        if(res.status === 200) renderDashboard(data);
+    } catch (e) { alert("Error fetching data"); }
+}
+
+function renderDashboard(data) {
+    // Show sections
+    document.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
+
+    // Update Highlights
+    document.getElementById("val-total-orders").innerText = data.total_orders;
+    document.getElementById("val-most-ordered").innerText = `${data.most_ordered_item} (${data.item_totals[data.most_ordered_item]})`;
+
+    // Render Item Totals Grid
+    const totalsGrid = document.getElementById("item-totals-grid");
+    totalsGrid.innerHTML = "";
+    for (const [name, qty] of Object.entries(data.item_totals)) {
+        totalsGrid.innerHTML += `<div class="total-item">${name} <span>${qty}</span></div>`;
+    }
+
+    // Render Orders Table
+    const tableBody = document.getElementById("orders-table-body");
+    tableBody.innerHTML = "";
+    data.orders.forEach(order => {
+        const items = Object.entries(order.OrderData.items)
+            .map(([name, qty]) => `<span class="item-badge">${qty} ${name}</span>`)
+            .join("");
+
+        tableBody.innerHTML += `
+            <tr>
+                <td style="white-space:nowrap">${order.Timestamp}</td>
+                <td><strong>${order.OrderData.agent}</strong></td>
+                <td>${items}</td>
+            </tr>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>

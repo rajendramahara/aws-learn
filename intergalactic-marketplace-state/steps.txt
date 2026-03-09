@@ -1,0 +1,47 @@
+Architecture (what we will build)
+1) Static website (order page) hosted on Amazon S3 (public read). The site lists the 10 items and posts orders to the API. 
+
+2)Amazon CloudFront in front of S3 for HTTPS, caching and faster global delivery (optional but recommended). 
+
+3) API Gateway (REST) with a POST endpoint /orders that integrates with a Lambda (Python) function (Lambda Proxy integration). The Lambda validates the order, generates an order signature, timestamps it, and writes to DynamoDB. 
+
+4) DynamoDB table IntergalacticOrders to store order records (id, timestamp, orderData, signature). See DynamoDB modeling docs for guidance.
+
+5) IAM: minimal-permission execution role for Lambda allowing only dynamodb:PutItem (and CloudWatch Logs). Use least-privilege. 
+
+
+1) Prepare S3 static website (console)
+    Open S3 console → Create bucket.
+    Upload files: In the bucket → Upload → upload index.html, app.js, styles.css etc.
+    Enable static website hosting:
+        Bucket → Properties → Static website hosting → Enable → Index document: index.html. Save. (Official doc steps).
+
+    Bucket policy (if serving directly from S3): set a policy to allow public s3:GetObject for arn:aws:s3:::your-bucket/*. The console offers a wizard when enabling website hosting. (If using CloudFront + OAC, you should NOT make the bucket public — instead restrict access and configure Origin Access Control.)
+
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "PublicRead",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::intergalactic-marketplace-state/*"
+            }
+        ]
+    }
+
+2) Create DynamoDB table (console)
+3) Create IAM execution role for Lambda (console)
+4) Create the Lambda (Python) that validates orders + stores in DynamoDB    
+    Set environment variables (Lambda console → Configuration → Environment variables):
+        ORDERS_TABLE = IntergalacticOrders
+        ORDER_SIGNING_SECRET = a random long string (or ideally reference Secrets Manager).
+
+5) Create API Gateway endpoint (console)
+    Open API Gateway Console → Create API → REST API (not HTTP API if you prefer REST). Choose "New API".
+    Name: IntergalacticAPI. Create.
+    Under the API, Create Resource → Resource name: orders → Resource Path: /orders.
+    Create Method: choose POST.
+        Integration type: Lambda Proxy.
+    Enable CORS

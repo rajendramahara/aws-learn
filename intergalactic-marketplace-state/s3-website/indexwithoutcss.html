@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Intergalactic Marketplace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: Arial; padding: 20px; }
+.item { margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<h2>Place an Order</h2>
+
+<label>Agent Name:</label>
+<input id="agent" placeholder="Enter agent name">
+
+<h3>Items</h3>
+<div id="items"></div>
+
+<button onclick="submitOrder()">Submit Order</button>
+
+<pre id="result"></pre>
+
+<script>
+const ITEMS = [
+    "Onniz",
+    "Nectan",
+    "Randolite Bark",
+    "Jenlomeryon Leaf",
+    "Afistase Fruit",
+    "Cabardson Seed",
+    "H1c Imonium Berry",
+    "Soipruolite Pollen",
+    "Wheeleaon Root",
+    "Poif Flower"
+];
+
+let div = document.getElementById("items");
+
+ITEMS.forEach(name => {
+    div.innerHTML += `
+        <div class="item">
+            ${name}: <input type="number" min="0" id="${name}" value="0">
+        </div>
+    `;
+});
+
+async function submitOrder() {
+    const agent = document.getElementById("agent").value;
+    const items = {};
+
+    ITEMS.forEach(name => {
+        let qty = parseInt(document.getElementById(name).value);
+        if (qty > 0) items[name] = qty;
+    });
+
+    const payload = { agent, items };
+
+    const res = await fetch(
+        "https://mzwkyf81g6.execute-api.us-east-1.amazonaws.com/prod/orders",
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        }
+    );
+
+    const data = await res.json();
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>

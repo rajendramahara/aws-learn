@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Order Summary</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: Arial; padding: 20px; }
+</style>
+</head>
+<body>
+
+<h2>Order Summary</h2>
+
+<button onclick="loadSummary()">Load Summary</button>
+
+<pre id="result"></pre>
+
+<script>
+async function loadSummary() {
+    const res = await fetch("https://mzwkyf81g6.execute-api.us-east-1.amazonaws.com/prod/summary");
+    const data = await res.json();
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>

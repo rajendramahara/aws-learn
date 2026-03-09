@@ -1,0 +1,55 @@
+ S3 (Static Website)
+       │  (fetch/POST)
+       ▼
+ API Gateway  →  Lambda  →  DynamoDB
+                         ↳  SNS Email Notification
+
+
+🟩STEP 1 — Create S3 Bucket for Static Website
+    create bucket with Enable Static Website Hosting
+    Bucket → Properties → Static Website Hosting
+    Upload UI Files
+    Add Public Bucket Policy
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+            "Sid": "PublicReadForWebsite",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::user-management-ui/*"
+            }
+        ]
+    }
+
+
+🟩 STEP 2 — Create DynamoDB Table
+
+🟩 STEP 3 — Create SNS Topic for Email  
+    Name: NewUserNotification   
+    Type: Standard
+    🔷 STEP — Create Email Subscription
+
+🟩 STEP 4 — Create IAM Role for Lambda
+    Go to IAM → Roles → Create role
+    Trusted entity: Lambda
+        Attach permissions:
+        AmazonDynamoDBFullAccess
+        AmazonSNSFullAccess
+        AWSLambdaBasicExecutionRole
+
+🟩 STEP 5 — Create Lambda Function
+    Add Environment Variable
+    SNS_TOPIC_ARN = arn:aws:sns:region:account-id:NewUserNotification
+
+
+🟩 STEP 6 — Create API Gateway
+    Go to API Gateway → Create API (HTTP API)
+    Create:
+        Route: POST /addUser
+        Integration: Lambda
+        Select AddUserLambda
+    API → CORS → Enable
+
+
